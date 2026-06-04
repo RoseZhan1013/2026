@@ -72,6 +72,8 @@
         color: white;
         font-size: 14px;
         font-weight: 600;
+
+        display: inline-block;
     }
 
     .btn {
@@ -314,7 +316,7 @@
                     </h2>
                     <div class="pokemon-types">
                         ${(pokemon.types || [])
-                            .map(type => `
+                    .map(type => `
                                 <span
                                     class="type-badge"
                                     style="background:${typeColor[type]}"
@@ -322,8 +324,8 @@
                                     ${typeMap[type]}
                                 </span>
                             `)
-                            .join('')
-                        }
+                    .join('')
+                }
                     </div>
                 </div>
             `).join('');
@@ -375,11 +377,45 @@
 
         }
 
+        // ================= 1. 新增：搜尋功能監聽器 =================
+        function setupSearchInput() {
+            const searchInput = document.getElementById('search-input');
 
-        // 6. 真正啟動程式（呼叫函式去抓資料）
-        pokemonData();
+            searchInput.addEventListener('input', (e) => {
+                // 取得使用者輸入的字串，並轉小寫、去前後空格
+                const keyword = e.target.value.toLowerCase().trim();
+
+                // 根據名字篩選寶可夢
+                const filteredPokemon = allPokemonData.filter(pokemon =>
+                    pokemon.name.toLowerCase().includes(keyword)
+                );
+
+                // 重新渲染畫面
+                renderpokemonCards(filteredPokemon);
+
+                // 【優化體驗】當使用者在搜尋時，自動把屬性按鈕重設回「全部」的亮起狀態
+                const buttons = document.querySelectorAll('.btn');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                document.querySelector('.btn[data-type="all"]').classList.add('active');
+            });
+        }
+
+        // ================= 2. 修改：改用 init 函式統一管理啟動流程 =================
+        //Initialization（初始化）->總開關＆啟動鍵
+        async function init() {
+            await pokemonData();
+            //抓資料 + 存進陣列 + 首次渲染全部
+            setupFilterButtons();
+            //綁定屬性按鈕監聽器
+            setupSearchInput();
+            //綁定搜尋輸入框監聽器
+        }
+
+        // 真正啟動程式（呼叫函式去抓資料）
+        init();
+
         //------
-        先抓資料
+        //先抓資料
         // ↓
         // 存進陣列
         // ↓
