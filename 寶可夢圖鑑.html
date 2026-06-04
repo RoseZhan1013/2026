@@ -70,7 +70,7 @@
         padding: 6px 12px;
         border-radius: 999px;
         color: white;
-        font-size: .8rem;
+        font-size: 14px;
         font-weight: 600;
     }
 
@@ -96,13 +96,6 @@
         background: #a78bc9;
         color: white;
         box-shadow: 0 10px 25px rgba(123, 98, 170, 0.3);
-    }
-
-    .pokemon-types {
-        display: flex;
-        gap: 8px;
-        justify-content: center;
-        flex-wrap: wrap;
     }
 
     /* ========================= 卡片區 ========================= */
@@ -156,16 +149,7 @@
         margin-bottom: 12px;
     }
 
-    /* ========================= 屬性 ========================= */
-    .pokemon-types {
-        display: inline-block;
-        padding: 8px 16px;
-        border-radius: 999px;
-        background: rgba(167, 139, 201, 0.15);
-        color: #6b5f80;
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
+
 
     /* ========================= Loading ========================= */
     .loading {
@@ -330,7 +314,7 @@
                     </h2>
                     <div class="pokemon-types">
                         ${(pokemon.types || [])
-                    .map(type => `
+                            .map(type => `
                                 <span
                                     class="type-badge"
                                     style="background:${typeColor[type]}"
@@ -338,9 +322,12 @@
                                     ${typeMap[type]}
                                 </span>
                             `)
-                    .join('')
+                            .join('')
                         }
                     </div>
+                </div>
+            `).join('');
+        }
 
         function setupFilterButtons() {
 
