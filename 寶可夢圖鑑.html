@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寶可夢圖鑑</title>
+</head>
+
+<style>
+    /* ========================= 全域設定 ========================= */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        min-height: 100vh;
+        font-family: "Noto Sans TC", sans-serif;
+        background: linear-gradient(135deg, #e8e0ee 0%, #d7d1e7 50%, #c8c0dc 100%);
+        color: #4f4a5c;
+        padding: 40px 20px;
+    }
+
+    /* ========================= 容器 ========================= */
+    .container {
+        max-width: 1400px;
+        margin: auto;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 3rem;
+        font-weight: 700;
+        color: #5b526d;
+        margin-bottom: 40px;
+        letter-spacing: 4px;
+    }
+
+    /* ========================= 搜尋列 ========================= */
+    .search-box {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+
+    .search-box input {
+        width: min(500px, 90%);
+        border: none;
+        padding: 16px 24px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .4);
+        backdrop-filter: blur(12px);
+        font-size: 1rem;
+        color: #544d63;
+        outline: none;
+    }
+
+    /* ========================= 篩選按鈕 ========================= */
+    .filter-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 40px;
+    }
+
+    .type-badge {
+        padding: 6px 12px;
+        border-radius: 999px;
+        color: white;
+        font-size: .8rem;
+        font-weight: 600;
+    }
+
+    .btn {
+        border: none;
+        padding: 12px 22px;
+        border-radius: 999px;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(10px);
+        color: #5b526d;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: 0.3s;
+    }
+
+    .btn:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.7);
+    }
+
+    .btn.active {
+        background: #a78bc9;
+        color: white;
+        box-shadow: 0 10px 25px rgba(123, 98, 170, 0.3);
+    }
+
+    .pokemon-types {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    /* ========================= 卡片區 ========================= */
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 24px;
+    }
+
+    /* ========================= 寶可夢卡片 ========================= */
+    .pokemon-card {
+        background: rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 28px;
+        padding: 24px;
+        text-align: center;
+        transition: 0.35s ease;
+        box-shadow: 0 12px 30px rgba(108, 93, 130, 0.12);
+    }
+
+    .pokemon-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 18px 40px rgba(108, 93, 130, 0.22);
+    }
+
+    /* ========================= 編號 ========================= */
+    .pokemon-id {
+        color: #9085a4;
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+    }
+
+    /* ========================= 圖片 ========================= */
+    .pokemon-image {
+        width: 140px;
+        height: 140px;
+        object-fit: contain;
+        margin-bottom: 16px;
+        transition: .35s;
+    }
+
+    .pokemon-card:hover .pokemon-image {
+        transform: scale(1.08);
+    }
+
+    /* ========================= 名稱 ========================= */
+    .pokemon-name {
+        font-size: 1.35rem;
+        color: #544d63;
+        margin-bottom: 12px;
+    }
+
+    /* ========================= 屬性 ========================= */
+    .pokemon-types {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: rgba(167, 139, 201, 0.15);
+        color: #6b5f80;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* ========================= Loading ========================= */
+    .loading {
+        grid-column: 1 / -1;
+        text-align: center;
+        font-size: 1.2rem;
+        color: #665b78;
+        padding: 60px 0;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <h1>寶可夢圖鑑</h1>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="搜尋寶可夢...">
+        </div>
+        <!-- 寶可夢能力篩選按鈕 -->
+        <div class="filter-container">
+            <button class="btn active" data-type="all">全部</button>
+            <button class="btn" data-type="bug">蟲系</button>
+            <button class="btn" data-type="electric">電系</button>
+            <button class="btn" data-type="fairy">妖精係</button>
+            <button class="btn" data-type="fire">火系</button>
+            <button class="btn" data-type="water">水系</button>
+            <button class="btn" data-type="flying">飛行系</button>
+            <button class="btn" data-type="grass">草系</button>
+            <button class="btn" data-type="ground">地面系</button>
+            <button class="btn" data-type="poison">毒系</button>
+            <button class="btn" data-type="normal">一般系</button>
+        </div>
+
+        <!-- 寶可夢卡片容器 -->
+        <div id="pokemon-cards" class="cards-grid">
+            <div class="loading">資料載入中...</div>
+        </div>
+    </div>
+
+
+    <script>
+        // 1.串接 API , 定義 API 相關變數
+        const getPokemonUrl = (id) =>
+            `https://pokeapi.co/api/v2/pokemon/${id}`;
+
+        // 2. 串接 API 取得資料
+        let allPokemonData = [];
+
+        const typeMap = {
+            normal: '一般',
+            fire: '火',
+            water: '水',
+            electric: '電',
+            grass: '草',
+            ice: '冰',
+            fighting: '格鬥',
+            poison: '毒',
+            ground: '地面',
+            flying: '飛行',
+            psychic: '超能力',
+            bug: '蟲',
+            rock: '岩石',
+            ghost: '幽靈',
+            dragon: '龍',
+            fairy: '妖精'
+        };
+
+        const typeColor = {
+            fire: '#f28482',
+            water: '#84a8f2',
+            grass: '#90be6d',
+            electric: '#f6bd60',
+            poison: '#b388eb',
+            flying: '#8ecae6',
+            bug: '#95d5b2',
+            ground: '#d4a373',
+            normal: '#adb5bd',
+            fairy: '#ffafcc'
+        };
+
+        // 宣告：async(非同步) 取資料庫、呼叫 API、讀取檔案
+        async function pokemonData() {
+            //try { ... }（嘗試執行）
+            try {
+                // 宣告陣列，存放這 151 隻非同步請求的號碼牌 (Promise)
+                const pokemonPromises = [];
+
+                // 一次抓取前 151 隻（第一世代）
+                for (let i = 1; i <= 151; i++) {
+                    // 將每隻寶可夢的兩組 fetch 綁在一起執行
+                    const promise = (async () => {
+                        const resBase = await fetch(
+                            getPokemonUrl(i)
+                        );
+
+                        console.log(resBase.status);
+
+                        // 轉換為 JSON 格式
+                        const baseData = await resBase.json();
+
+                        // 3. 直接撈取原本設定好的 4 個內容
+                        const id = baseData.id;
+                        const image =
+                            baseData.sprites.other?.['official-artwork']?.front_default ||
+                            baseData.sprites.front_default;
+
+                        // 將 types 存成「陣列」，在渲染時再 join 成字串
+                        const typesArray =
+                            baseData.types.map(item => item.type.name);
+
+                        const name =
+                            baseData.name.charAt(0).toUpperCase() +
+                            baseData.name.slice(1);
+
+                        // 4. 打包圖鑑卡片格式
+                        return {
+                            id: id,
+                            name: name,
+                            image: image,
+                            types: typesArray // 存成陣列，例如：['grass', 'poison']
+                        };
+                        //在 async () => { ... } 的結尾加上 () 讓它立即執行（立即呼叫函式表達式）
+                    })();
+
+                    pokemonPromises.push(promise);
+                }
+
+                // 使用 Promise.all 讓 151 隻寶可夢同時開工抓取
+                allPokemonData = await Promise.all(pokemonPromises);
+
+                // 5. 首次載入：直接渲染全部寶可夢
+                renderpokemonCards(allPokemonData);
+
+                // 6. 資料全載入完畢後，啟動按鈕篩選監聽器
+                setupFilterButtons();
+
+            } catch (error) {
+                console.error("連線或解析錯誤:", error);
+                document.getElementById('pokemon-cards').innerHTML = '<div class="loading">資料載入失敗，請稍後再試。</div>';
+            }
+        };
+
+        // 5-1. 實作渲染畫面的函式（對應您原本的邏輯）
+        function renderpokemonCards(pokemon) {
+            console.log(
+                pokemon.find(item => !item.types)
+            );
+            const container = document.getElementById('pokemon-cards');
+
+            // 用樣版字串 (Template Literals) 動態產生 HTML 結構
+            container.innerHTML = pokemon.map(pokemon => `
+                <div class="pokemon-card">
+                    <div class="pokemon-id">
+                        #${String(pokemon.id).padStart(3, '0')}
+                        </div>
+                    <img 
+                    class="pokemon-image" 
+                    src="${pokemon.image}" 
+                    alt="${pokemon.name}"
+                    >
+                    <h2 class="pokemon-name">
+                        ${pokemon.name}
+                    </h2>
+                    <div class="pokemon-types">
+                        ${(pokemon.types || [])
+                    .map(type => `
+                                <span
+                                    class="type-badge"
+                                    style="background:${typeColor[type]}"
+                                >
+                                    ${typeMap[type]}
+                                </span>
+                            `)
+                    .join('')
+                        }
+                    </div>
+
+        function setupFilterButtons() {
+
+            const buttons =
+                document.querySelectorAll('.btn');
+
+            buttons.forEach(button => {
+
+                button.addEventListener('click', () => {
+
+                    // 切換 active
+                    buttons.forEach(btn =>
+                        btn.classList.remove('active')
+                    );
+
+                    button.classList.add('active');
+
+                    const type =
+                        button.dataset.type;
+
+                    // 全部
+                    if (type === 'all') {
+
+                        renderpokemonCards(
+                            allPokemonData
+                        );
+
+                        return;
+                    }
+
+                    // 篩選屬性
+                    const filteredPokemon =
+                        allPokemonData.filter(
+                            pokemon =>
+                                pokemon.types.includes(type)
+                        );
+
+                    renderpokemonCards(
+                        filteredPokemon
+                    );
+
+                });
+
+            });
+
+        }
+
+
+        // 6. 真正啟動程式（呼叫函式去抓資料）
+        pokemonData();
+        //------
+        先抓資料
+        // ↓
+        // 存進陣列
+        // ↓
+        // 渲染畫面
+        // ↓
+        // 綁定按鈕
+        // ↓
+        // 等待使用者點擊
+        // ↓
+        // 重新渲染畫面
+    </script>
+</body>
+
+</html>

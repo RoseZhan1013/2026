@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    :root {
+        --primary-color: #4a4ce2;
+        --bg-color: #f5f7fa;
+        --card-bg: #ffffff;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+        background-color: var(--bg-color);
+        color: #333;
+        padding: 40px 20px;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #2c3e50;
+    }
+
+    /* 篩選按鈕樣式 */
+    .filter-container {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 10px 25px;
+        border: none;
+        background-color: #fff;
+        color: #555;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover,
+    .btn.active {
+        background-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 4px 10px rgba(74, 144, 226, 0.4);
+    }
+
+    /* 卡片網格 */
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 25px;
+    }
+
+    .loading {
+        grid-column: 1 / -1;
+        text-align: center;
+        font-size: 18px;
+        color: #666;
+    }
+
+    /* 氣象卡片精緻化 */
+    .weather-card {
+        background: var(--card-bg);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .weather-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .location {
+        font-size: 20px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .region-tag {
+        display: inline-block;
+        font-size: 12px;
+        padding: 3px 10px;
+        background-color: #eef2f7;
+        color: #7f8c8d;
+        border-radius: 12px;
+        margin-bottom: 15px;
+    }
+
+    .weather-icon {
+        font-size: 48px;
+        margin: 15px 0;
+        color: rgb(246, 126, 126);
+        /* 預設金色 */
+    }
+
+    /* 根據天氣微調圖示顏色 */
+    .fa-cloud-rain,
+    .fa-umbrella {
+        color: #4a4ce2;
+    }
+
+    .fa-cloud {
+        color: #95a5a6;
+    }
+
+    .fa-sun {
+        color: #f1c40f;
+    }
+
+    .temp-range {
+        font-size: 24px;
+        font-weight: bold;
+        color: #34495e;
+        margin-bottom: 10px;
+    }
+
+    .weather-text {
+        font-size: 16px;
+        color: #7f8c8d;
+        margin-bottom: 15px;
+    }
+
+    .pop-info {
+        font-size: 14px;
+        color: #4a4ce2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+</style>
+
+<body>
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>全台即時天氣看板</title>
+        <link rel="stylesheet" href="style.css">
+        <!-- 引入 Font Awesome 處理天氣圖示 (也可以用圖片代替) -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    </head>
+
+    <body>
+
+        <div class="container">
+            <h1>全台各縣市天氣預報</h1>
+
+            <!-- 地區篩選按鈕 -->
+            <div class="filter-container">
+                <button class="btn active" data-region="all">全部</button>
+                <button class="btn" data-region="north">北部</button>
+                <button class="btn" data-region="central">中部</button>
+                <button class="btn" data-region="south">南部</button>
+                <button class="btn" data-region="east">東部</button>
+                <button class="btn" data-region="island">離島</button>
+            </div>
+
+            <!-- 氣象卡片容器 -->
+            <div id="weather-cards" class="cards-grid">
+                <div class="loading">資料載入中...</div>
+            </div>
+        </div>
+
+        <script>
+            // 1. 定義 API 相關變數
+            const API_URL = 'https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001';
+            const AUTHORIZATION = 'CWA-43F3EEA2-91D3-4F50-919E-01A86E3E4114'; // <-- 你的授權碼加在這裡
+
+            // 定義縣市分區（供後續篩選功能使用）
+            const regionMapping = {
+                '基隆市': 'north', '臺北市': 'north', '新北市': 'north', '桃園市': 'north', '新竹市': 'north', '新竹縣': 'north', '宜蘭縣': 'north',
+                '苗栗縣': 'central', '臺中市': 'central', '彰化縣': 'central', '南投縣': 'central', '雲林縣': 'central',
+                '嘉義市': 'south', '嘉義縣': 'south', '臺南市': 'south', '高雄市': 'south', '屏東縣': 'south',
+                '花蓮縣': 'east', '臺東縣': 'east', '澎湖縣': 'island', '金門縣': 'island', '連江縣': 'island'
+            };
+
+            // 偏向資料庫的撰寫方式
+            // const regionMapping = [
+            //     {
+            //         city: 'OOO',
+            //         region: "III"
+            //     },
+            //     {
+            //         city: 'OOO',
+            //         region: "III"
+            //     },
+            //     {
+            //         city: 'OOO',
+            //         region: "III"
+            //     },
+            // ];
+
+
+            let allWeatherData = []; // 儲存下載回來的全台資料
+
+            // 2. 串接 API 取得資料
+            //宣告：async(非同步) 取資料庫、呼叫 API、讀取檔案
+            // async function fetchWeatherData() {
+            //     //try { ... }（嘗試執行）
+            //     try {
+            //         // 將授權碼帶入 URL 的 query string 中
+            //         //執行：await-> 資料回傳了，繼續執行下一行程式碼
+            //         //? 後面開始帶第一個參數：我的授權碼是 xyz123
+            //         //& ->如果有多個參數，會用 & 串接
+            //         //const url = API_URL + "?Authorization=" + AUTHORIZATION;
+            //         //fetch()：發送網路請求，去氣象署抓資料
+            //         const response = await fetch(`${API_URL}?Authorization=${AUTHORIZATION}`);
+            //         //轉換 JSON 格式
+            //         const data = await response.json();
+
+            //         if (data.success === "true") {
+            //             // 解析資料並儲存
+            //             allWeatherData = parseWeatherData(data);
+            //             // 首次載入渲染全部縣市
+            //             renderWeatherCards(allWeatherData);
+            //         } else {
+            //             console.error("API 載入失敗");
+            //         }
+            //         //catch (error) { ... }（抓到錯誤）
+            //         //斷線顯示錯誤訊息
+            //     } catch (error) {
+            //         console.error("連線錯誤:", error);
+            //         //document.getElementById() 用來選取特定 HTML 元素的最常用方法，要尋找元素的 id 名稱（字串格式）
+            //         document.getElementById('weather-cards').innerHTML = '<div class="loading">資料載入失敗，請稍後再試。</div>';
+            //     }
+            // }
+
+            function fetchWeatherData() {
+                fetch(`${API_URL}?Authorization=${AUTHORIZATION}`)
+                    // 取得 Response 物件
+                    .then(response => {
+                        // 轉成 JSON
+                        return response.json();
+                    })
+                    // 取得 JSON 資料
+                    .then(data => {
+                        if (data.success === "true") {
+                            // 解析資料並儲存
+                            allWeatherData = parseWeatherData(data);
+                            // 首次載入渲染全部縣市
+                            renderWeatherCards(allWeatherData);
+                        } else {
+                            console.error("API 載入失敗");
+                        }
+                    })
+                    // 錯誤處理
+                    .catch(error => {
+                        console.error("連線錯誤:", error);
+                        document.getElementById('weather-cards').innerHTML =
+                            '<div class="loading">資料載入失敗，請稍後再試。</div>';
+                    });
+            }
+
+
+            // 3. 資料解構 (Wx, PoP, MinT, MaxT)
+            // parseWeatherData(apiData)取其中重點
+            function parseWeatherData(apiData) {
+                //從 API 取得的資料（apiData）中，找到位置（location）的資料列表，並把它存到一個叫做 locationArray 的變數裡
+                const locationArray = apiData.records.location;
+                return locationArray.map(loc => {
+                    const locationName = loc.locationName;
+                    const weatherElements = loc.weatherElement;
+                    // 抓取第一個時段 (通常是未來 6 或 12 小時)
+                    // wx -> 天氣現象
+                    //el -> 被抽出來檢查的元素，find() 會回傳第一個符合條件的元素
+                    //[0] 代表「第一個時段」（也就是最接近現在、即將到來的未來 6 或 12 小時）
+                    //.parameter：進入這個時段的「參數內容」箱子。
+                    const wx = weatherElements.find(el => el.elementName === 'Wx').time[0].parameter;
+                    //檢查：el（當前這個項目）的 elementName 是不是等於 'Wx'？
+                    //pop -> 降雨機率
+                    //.parameterName：最終拿出這個參數的「名字/數值」。
+                    const pop = weatherElements.find(el => el.elementName === 'PoP').time[0].parameter.parameterName;
+                    //minT -> 最低溫
+                    const minT = weatherElements.find(el => el.elementName === 'MinT').time[0].parameter.parameterName;
+                    //maxT -> 最高溫
+                    const maxT = weatherElements.find(el => el.elementName === 'MaxT').time[0].parameter.parameterName;
+
+                    return {
+                        name: locationName,
+                        region: regionMapping[locationName] || 'other',
+                        //（例如輸入 '台北市' 會得到 '北部'），如果對照表找不到，就預設歸類為 'other'
+                        wxText: wx.parameterName,
+                        //抓取天氣的「文字描述」存到 wxText 這個標籤裡。
+                        //拿到的項目 例如 "晴時多雲"、"陰有陣雨" 或 "多雲短暫雨"。
+                        wxCode: parseInt(wx.parameterValue), // 天氣代碼，用來判斷 Icon
+                        //抓取天氣的「代碼（數字）」轉換成整數，存到 wxCode 這個標籤裡。
+                        pop: pop,
+                        minT: minT,
+                        maxT: maxT
+                    };
+                });
+            }
+
+            // 4. 根據天氣代碼動態回傳 Font Awesome 圖示
+            function getWeatherIcon(code) {
+                if (code === 1) return '<i class="fa-solid fa-sun weather-icon"></i>'; // 晴天
+                if (code >= 2 && code <= 7) return '<i class="fa-solid fa-cloud-sun weather-icon"></i>'; // 多雲時晴
+                if (code >= 8 && code <= 14) return '<i class="fa-solid fa-cloud weather-icon"></i>'; // 陰天
+                if (code >= 15 && code <= 28) return '<i class="fa-solid fa-cloud-rain weather-icon"></i>'; // 雨天
+                return '<i class="fa-solid fa-umbrella weather-icon"></i>'; // 預設
+            }
+
+            // 5. 畫面呈現
+            function renderWeatherCards(dataList) {
+                const container = document.getElementById('weather-cards');
+                if (dataList.length === 0) {
+                    container.innerHTML = '<div class="loading">暫無該地區資料</div>';
+                    return; //篩選出來的資料是 0，提早結束函式
+                }
+
+                //-------
+
+                container.innerHTML = dataList.map(card => `
+                    <div class="weather-card">
+                        <div class="location">${card.name}</div>
+                        <div class="region-tag">${getRegionName(card.region)}</div>
+                        ${getWeatherIcon(card.wxCode)}
+                        <div class="temp-range">${card.minT}°C - ${card.maxT}°C</div>
+                        <div class="weather-text">${card.wxText}</div>
+                        <div class="pop-info">
+                            <i class="fa-solid fa-droplet"></i> 降雨機率 ${card.pop}%
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            function getRegionName(region) {
+                const names = { north: '北部', central: '中部', south: '南部', east: '東部', island: '離島', other: '其他' };
+                return names[region] || '其他';
+            }
+
+            // 6. 地區過濾按鈕事件綁定
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // 切換 active 樣式
+                    document.querySelector('.btn.active').classList.remove('active');
+                    e.target.classList.add('active');
+
+                    const region = e.target.dataset.region;
+                    if (region === 'all') {
+                        renderWeatherCards(allWeatherData);
+                    } else {
+                        const filtered = allWeatherData.filter(item => item.region === region);
+                        renderWeatherCards(filtered);
+                    }
+                });
+            });
+
+            // 初始化啟動
+            fetchWeatherData();
+        </script>
+    </body>
+
+</html>
+<script>
+    //中央氣象署 API 串接
+    //串接氣象開放資料，取得全台各縣市即時天氣資訊。
+    // 使用者可透過地區篩選（如北中南東）切換顯示，
+    // 動態產出具備溫濕度與天氣圖示的精緻卡片。
+    // 1地區過濾：點擊按鈕可篩選「北部、中部、南部、東部」縣市資料。
+    // 2資料解構：精確從複雜的 API JSON 結構中提取 Wx、PoP、MinT 等參數。
+    // 3狀態切換：根據天氣代碼動態載入對應的氣象 Icon (如：晴、雨、雲)。
+
+    // 1.串接 API
+    // 2.資料處理
+    // 3.畫面呈現
+</script>
+
+</body>
+
+</html>
