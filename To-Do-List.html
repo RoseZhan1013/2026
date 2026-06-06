@@ -1,11 +1,407 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="zh-TW">
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>99-ToDoList</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f3ff 0%, #edd8f6 100%);
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --primary-color: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --text-main: #4c1d95;
+            --text-muted: #9333ea;
+            --tag-work-bg: #e0e7ff;
+            --tag-work-text: #4f46e5;
+            --tag-personal-bg: #fae8ff;
+            --tag-personal-text: #8f4b9a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .todo-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 520px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* 頂部統計區 */
+        .todo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .todo-header h2 {
+            font-size: 22px;
+            color: var(--text-main);
+            font-weight: 600;
+            position: relative;
+        }
+
+        .todo-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 30px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .task-counter {
+            font-size: 13px;
+            background: #f3e8ff;
+            color: var(--primary-color);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        /* 輸入區排版 */
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .main-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9d5ff;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .main-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+
+        .category-select {
+            padding: 0 12px;
+            border: 2px solid #e9d5ff;
+            border-radius: 12px;
+            background: white;
+            color: #6b21a8;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .add-button {
+            padding: 0 20px;
+            background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+        }
+
+        .add-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.3);
+        }
+
+        /* 篩選頁籤區 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f3e8ff;
+            padding-bottom: 12px;
+        }
+
+        .tab {
+            background: #f5f3ff;
+            color: #7e22ce;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: #eae5ff;
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);
+        }
+
+        /* 列表項目排版 */
+        .list-container {
+            list-style: none;
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .list-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .list-container::-webkit-scrollbar-thumb {
+            background: #e9d5ff;
+            border-radius: 10px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 12px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            gap: 12px;
+            transition: all 0.3s;
+            border: 1px solid #f3e8ff;
+        }
+
+        .todo-item:hover {
+            transform: translateX(2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+        }
+
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #c084fc;
+            border-radius: 50%;
+            cursor: pointer;
+            appearance: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .custom-checkbox:checked {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            position: relative;
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .item-text {
+            flex: 1;
+            font-size: 15px;
+            color: #3b0764;
+            transition: all 0.2s;
+        }
+
+        /* 完成狀態樣式 */
+        .todo-item.completed {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .todo-item.completed .item-text {
+            text-decoration: line-through;
+            color: #a855f7;
+            opacity: 0.6;
+        }
+
+        /* 分類標籤樣式 */
+        .item-tag {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .item-tag.工作 {
+            background: var(--tag-work-bg);
+            color: var(--tag-work-text);
+        }
+
+        .item-tag.個人 {
+            background: var(--tag-personal-bg);
+            color: var(--tag-personal-text);
+        }
+
+        .del-btn {
+            background: none;
+            border: none;
+            color: #ec4899;
+            font-size: 13px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            padding: 2px 6px;
+        }
+
+        .todo-item:hover .del-btn {
+            opacity: 1;
+        }
+
+        .del-btn:hover {
+            color: #db2777;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
-    
+
+    <div class="todo-box">
+        <!-- 頂部區 -->
+        <div class="todo-header">
+            <h2>待辦事項</h2>
+            <span class="task-counter" id="taskCount">0 項待完成</span>
+        </div>
+
+        <!-- 輸入區 -->
+        <div class="input-section">
+            <input type="text" id="todoInput" class="main-input" placeholder="新增任務內容...">
+            <select id="categorySelect" class="category-select">
+                <option value="個人">個人</option>
+                <option value="工作">工作</option>
+            </select>
+            <button id="addBtn" class="add-button">新增</button>
+        </div>
+
+        <!-- 篩選分頁頁籤 -->
+        <div class="filter-bar" id="filterBar">
+            <button class="tab active" data-filter="all">全部</button>
+            <button class="tab" data-filter="active">未完成</button>
+            <button class="tab" data-filter="completed">已完成</button>
+            <button class="tab" data-filter="工作">工作</button>
+            <button class="tab" data-filter="個人">個人</button>
+        </div>
+
+        <!-- 渲染列表 -->
+        <ul id="todoList" class="list-container"></ul>
+    </div>
+
+    <!-- JavaScript 區域 -->
+    <script>
+        // 1. 選取網頁 DOM 元素
+        const todoInput = document.getElementById('todoInput');
+        const categorySelect = document.getElementById('categorySelect');
+        const addBtn = document.getElementById('addBtn');
+        const todoList = document.getElementById('todoList');
+        const taskCount = document.getElementById('taskCount');
+        const filterBar = document.getElementById('filterBar');
+
+        // 2. 資料集初始化
+        let todos = JSON.parse(localStorage.getItem('myTodos')) || [];
+        let currentFilter = 'all'; 
+
+        // 3. 畫面渲染主核心
+        function renderTodos() {
+            todoList.innerHTML = '';
+
+            const filteredTodos = todos.filter(todo => {
+                if (currentFilter === 'active') return !todo.done;
+                if (currentFilter === 'completed') return todo.done;
+                if (currentFilter === '工作' || currentFilter === '個人') return todo.category === currentFilter;
+                return true;
+            });
+
+            filteredTodos.forEach((todo) => {
+                const actualIndex = todos.indexOf(todo);
+
+                const li = document.createElement('li');
+                li.className = `todo-item ${todo.done ? 'completed' : ''}`;
+
+                li.innerHTML = `
+                    <input type="checkbox" ${todo.done ? 'checked' : ''} data-index="${actualIndex}" class="custom-checkbox">
+                    <span class="item-text">${todo.text}</span>
+                    <span class="item-tag ${todo.category}">${todo.category}</span>
+                    <button data-index="${actualIndex}" class="del-btn">刪除</button>
+                    `;
+                todoList.appendChild(li);
+            });
+
+            const activeCount = todos.filter(t => !t.done).length;
+            taskCount.textContent = `${activeCount} 項待完成`;
+
+            localStorage.setItem('myTodos', JSON.stringify(todos));
+        }
+
+        // 4. 新增任務事件
+        function addTodo() {
+            const text = todoInput.value.trim();
+            const category = categorySelect.value;
+
+            if (!text) {
+                alert('寫點什麼吧！');
+                return;
+            }
+
+            todos.push({ text, category, done: false });
+            todoInput.value = ''; 
+            renderTodos(); 
+        }
+
+        addBtn.addEventListener('click', addTodo);
+        todoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTodo(); });
+
+        // 5. 事件代理（此處修正了 index === undefined 的判斷邏輯）
+        todoList.addEventListener('click', (e) => {
+            const index = e.target.dataset.index;
+            if (index === undefined) return; // 改用是否為 undefined 判斷，避免 index 0 被擋掉
+
+            if (e.target.classList.contains('custom-checkbox')) {
+                todos[index].done = e.target.checked;
+            } else if (e.target.classList.contains('del-btn')) {
+                todos.splice(index, 1);
+            }
+            renderTodos();
+        });
+
+        // 6. 分頁頁籤切換監聽
+        filterBar.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('tab')) return;
+
+            document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+
+            currentFilter = e.target.dataset.filter;
+            renderTodos();
+        });
+
+        // 頁面初次載入執行
+        renderTodos();
+    </script>
 </body>
 </html>
