@@ -1,0 +1,155 @@
+/* 基礎樣式重設 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f4f2f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #4a3e4d;
+}
+
+/* 遊戲主容器 */
+.game-container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(142, 126, 153, 0.15);
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+}
+
+h1 {
+    color: #6c597a;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+/* 數據面板 */
+.score-board {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 25px;
+    background: #f0ecf4;
+    padding: 12px;
+    border-radius: 16px;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #93819e;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #5c476b;
+}
+
+/* 4x4 網格卡牌區 */
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 25px;
+    perspective: 1000px;
+}
+
+/* 卡牌基礎樣式 */
+.card {
+    aspect-ratio: 1 / 1;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+}
+
+.card.flipped {
+    transform: rotateY(180deg);
+}
+
+.card.matched {
+    transform: rotateY(180deg);
+    cursor: default;
+}
+
+/* 卡牌正反面通用樣式 */
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(142, 126, 153, 0.1);
+    overflow: hidden; /* 確保內置貓咪圖片不會超出圓角 */
+}
+
+/* 卡牌背面（莫蘭迪紫） */
+.card-back {
+    background: linear-gradient(135deg, #a393b3, #857296);
+    color: white;
+}
+
+.card-back::after {
+    content: "🐾";
+    font-size: 1.5rem;
+    opacity: 0.6;
+}
+
+/* 卡牌正面（貓咪圖片外框） */
+.card-front {
+    background: #fbfaff;
+    border: 3px solid #dcd6e3;
+    transform: rotateY(180deg);
+    padding: 0; /* 移除內部邊距讓圖片填滿 */
+}
+
+/* 🐱 新增：貓咪圖片專用樣式 */
+.cat-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 關鍵：裁切圖片保持比例不變形 */
+    user-select: none;
+    -webkit-user-drag: none; /* 防止玩家用滑鼠拖曳圖片洩漏答案 */
+}
+
+/* 重新開始按鈕 */
+.reset-btn {
+    background-color: #857296;
+    color: white;
+    border: none;
+    padding: 12px 35px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(133, 114, 150, 0.3);
+}
+
+.reset-btn:hover {
+    background-color: #6c597a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(108, 89, 122, 0.4);
+}
+
+.reset-btn:active {
+    transform: translateY(0);
+}
