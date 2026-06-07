@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
-<head>
+    <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>課後任務：99-ToDoList</title>
+    <title>99-ToDoList</title>
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #f5f3ff 0%, #edd8f6 100%);
@@ -168,7 +167,6 @@
             list-style: none;
             max-height: 320px;
             overflow-y: auto;
-            /* 清單過長時會出現滾動條 */
             padding-right: 4px;
         }
 
@@ -314,109 +312,96 @@
         <ul id="todoList" class="list-container"></ul>
     </div>
 
-</body>
+    <!-- JavaScript 區域 -->
+    <script>
+        // 1. 選取網頁 DOM 元素
+        const todoInput = document.getElementById('todoInput');
+        const categorySelect = document.getElementById('categorySelect');
+        const addBtn = document.getElementById('addBtn');
+        const todoList = document.getElementById('todoList');
+        const taskCount = document.getElementById('taskCount');
+        const filterBar = document.getElementById('filterBar');
 
-</html>
+        // 2. 資料集初始化
+        let todos = JSON.parse(localStorage.getItem('myTodos')) || [];
+        let currentFilter = 'all'; 
 
-<!-- JavaScript 區域 -->
-<script>
-    // 1. 選取網頁 DOM 元素
-    const todoInput = document.getElementById('todoInput');
-    const categorySelect = document.getElementById('categorySelect');
-    const addBtn = document.getElementById('addBtn');
-    const todoList = document.getElementById('todoList');
-    const taskCount = document.getElementById('taskCount');
-    const filterBar = document.getElementById('filterBar');
+        // 3. 畫面渲染主核心
+        function renderTodos() {
+            todoList.innerHTML = '';
 
-    // 2. 資料集初始化（取得 localStorage 舊資料，若無則給空陣列）
-    let todos = JSON.parse(localStorage.getItem('myTodos')) || [];
-    let currentFilter = 'all'; // 預設篩選狀態為全部
+            const filteredTodos = todos.filter(todo => {
+                if (currentFilter === 'active') return !todo.done;
+                if (currentFilter === 'completed') return todo.done;
+                if (currentFilter === '工作' || currentFilter === '個人') return todo.category === currentFilter;
+                return true;
+            });
 
-    // 3. 畫面渲染主核心
-    function renderTodos() {
-        todoList.innerHTML = '';
+            filteredTodos.forEach((todo) => {
+                const actualIndex = todos.indexOf(todo);
 
-        // 依條件過濾出要在畫面上顯示的陣列資料
-        const filteredTodos = todos.filter(todo => {
-            if (currentFilter === 'active') return !todo.done;
-            if (currentFilter === 'completed') return todo.done;
-            if (currentFilter === '工作' || currentFilter === '個人') return todo.category === currentFilter;
-            return true;
-        });
+                const li = document.createElement('li');
+                li.className = `todo-item ${todo.done ? 'completed' : ''}`;
 
-        // 生成 HTML 項目
-        filteredTodos.forEach((todo) => {
-            // 取得這一筆在「原始 todos 總陣列」中的真實索引 index
-            const actualIndex = todos.indexOf(todo);
+                li.innerHTML = `
+                    <input type="checkbox" ${todo.done ? 'checked' : ''} data-index="${actualIndex}" class="custom-checkbox">
+                    <span class="item-text">${todo.text}</span>
+                    <span class="item-tag ${todo.category}">${todo.category}</span>
+                    <button data-index="${actualIndex}" class="del-btn">刪除</button>
+                    `;
+                todoList.appendChild(li);
+            });
 
-            const li = document.createElement('li');
-            li.className = `todo-item ${todo.done ? 'completed' : ''}`;
+            const activeCount = todos.filter(t => !t.done).length;
+            taskCount.textContent = `${activeCount} 項待完成`;
 
-            li.innerHTML = `
-                <input type="checkbox" ${todo.done ? 'checked' : ''} data-index="${actualIndex}" class="custom-checkbox">
-                <span class="item-text">${todo.text}</span>
-                <span class="item-tag ${todo.category}">${todo.category}</span>
-                <button data-index="${actualIndex}" class="del-btn">刪除</button>
-                `;
-            todoList.appendChild(li);
-        });
-
-        // 精準計算「未完成」件數並更新數據
-        const activeCount = todos.filter(t => !t.done).length;
-        taskCount.textContent = `${activeCount} 項待完成`;
-
-        // 陣列資料同步儲存至 localStorage 中
-        localStorage.setItem('myTodos', JSON.stringify(todos));
-    }
-
-    // 4. 新增任務事件
-    function addTodo() {
-        const text = todoInput.value.trim();
-        const category = categorySelect.value;
-
-        if (!text) {
-            alert('寫點什麼吧！');
-            return;
+            localStorage.setItem('myTodos', JSON.stringify(todos));
         }
 
-        // 將資料包裝成物件推入核心陣列
-        todos.push({ text, category, done: false });
-        todoInput.value = ''; // 清空
-        renderTodos(); // 重新渲染
-    }
+        // 4. 新增任務事件
+        function addTodo() {
+            const text = todoInput.value.trim();
+            const category = categorySelect.value;
 
-    addBtn.addEventListener('click', addTodo);
-    todoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTodo(); });
+            if (!text) {
+                alert('寫點什麼吧！');
+                return;
+            }
 
-    // 5. 事件代理：監聽清單點擊（勾選狀態切換 / 刪除項目）
-    todoList.addEventListener('click', (e) => {
-        const index = e.target.dataset.index;
-        if (!index) return; // 沒點到 index 就不動作
-
-        if (e.target.classList.contains('custom-checkbox')) {
-            todos[index].done = e.target.checked;
-        } else if (e.target.classList.contains('del-btn')) {
-            todos.splice(index, 1);
+            todos.push({ text, category, done: false });
+            todoInput.value = ''; 
+            renderTodos(); 
         }
+
+        addBtn.addEventListener('click', addTodo);
+        todoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTodo(); });
+
+        // 5. 事件代理（此處修正了 index === undefined 的判斷邏輯）
+        todoList.addEventListener('click', (e) => {
+            const index = e.target.dataset.index;
+            if (index === undefined) return; // 改用是否為 undefined 判斷，避免 index 0 被擋掉
+
+            if (e.target.classList.contains('custom-checkbox')) {
+                todos[index].done = e.target.checked;
+            } else if (e.target.classList.contains('del-btn')) {
+                todos.splice(index, 1);
+            }
+            renderTodos();
+        });
+
+        // 6. 分頁頁籤切換監聽
+        filterBar.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('tab')) return;
+
+            document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+
+            currentFilter = e.target.dataset.filter;
+            renderTodos();
+        });
+
+        // 頁面初次載入執行
         renderTodos();
-    });
-
-    // 6. 分頁頁籤切換監聽
-    filterBar.addEventListener('click', (e) => {
-        if (!e.target.classList.contains('tab')) return;
-
-        // 動態切換按鈕的 active 高亮類別
-        document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
-        e.target.classList.add('active');
-
-        // 修改篩選變數，重新驅動畫面
-        currentFilter = e.target.dataset.filter;
-        renderTodos();
-    });
-
-    // 頁面初次載入執行
-    renderTodos();
-</script>
+    </script>
 </body>
-
 </html>

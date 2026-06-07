@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="翻翻牌.css">
+</head>
+
+<body>
+    <!DOCTYPE html>
+    <html lang="zh-TW">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>喵喵！翻翻樂</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+
+    <body>
+
+        <div class="game-container">
+            <h1>喵喵！翻翻樂</h1>
+
+            <!-- 數據追蹤面板 -->
+            <div class="score-board">
+                <div class="stat-box">
+                    <span class="stat-label">翻牌次數</span>
+                    <span id="flip-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">已配對數</span>
+                    <span id="match-count" class="stat-value">0 / 8</span>
+                </div>
+            </div>
+
+            <!-- 16張卡牌遊戲區 -->
+            <div id="game-board" class="game-board"></div>
+
+            <!-- 功能按鈕 -->
+            <button id="reset-btn" class="reset-btn">重新洗牌</button>
+        </div>
+
+        <script>
+            const catImages = [
+                'https://images.unsplash.com/photo-1609231616376-bc9f1c4f0eb7?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // 橘貓
+                'https://megapx-assets.dcard.tw/images/f35ff3b0-61d9-4a0b-8bcd-29591f1fe40d/640.jpeg', // 搞笑貓
+                'https://images.unsplash.com/photo-1638947693941-669835e07b4c?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // 睡覺貓
+                'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // 好奇貓
+                'https://images.unsplash.com/photo-1615789591457-74a63395c990?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // 墨鏡貓
+                'https://images.unsplash.com/photo-1611952987472-b7ed883cafbd?q=80&w=926&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // 白貓
+                'https://p3-pc-sign.douyinpic.com/tos-cn-i-0813c000-ce/oAFaCMJaCyopABAviiavbIEK6haEACAB2APgx~tplv-dy-aweme-images-v2:3000:3000:q75.webp?biz_tag=aweme_images&from=327834062&lk3s=138a59ce&s=PackSourceEnum_SEARCH&sc=image&se=false&x-expires=1781132400&x-signature=MgQCZN6HfiIF2U3ogkYVPJUKJNI%3D', // 玩耍貓
+                'https://plus.unsplash.com/premium_photo-1677181729163-33e6b59d5c8f?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'  // 萌貓
+            ];
+            let cardsArray = [...catImages, ...catImages];
+
+            // 2. 遊戲狀態追蹤變數
+            let flippedCards = [];
+            let flipCount = 0;
+            let matchCount = 0;
+            let isBoardLocked = false; // 鎖定機制：防止非法連續點擊
+
+            // 3. 獲取 DOM 元素
+            const gameBoard = document.getElementById('game-board');
+            const flipCountDisplay = document.getElementById('flip-count');
+            const matchCountDisplay = document.getElementById('match-count');
+            const resetBtn = document.getElementById('reset-btn');
+
+            // 4. 洗牌演算法 (Fisher-Yates Shuffle)
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            // 5. 初始化與生成遊戲面板
+            function initGame() {
+                gameBoard.innerHTML = '';
+                flippedCards = [];
+                flipCount = 0;
+                matchCount = 0;
+                isBoardLocked = false;
+
+                flipCountDisplay.textContent = flipCount;
+                matchCountDisplay.textContent = `${matchCount} / 8`;
+
+                // 洗牌
+                const shuffledCards = shuffle([...cardsArray]);
+
+                // 動態產生 16 張內含 <img> 的卡牌結構
+                shuffledCards.forEach((imgUrl, index) => {
+                    const card = document.createElement('div');
+                    card.classList.add('card');
+                    card.dataset.img = imgUrl; // 改為儲存網址做為比對標記
+                    card.dataset.index = index;
+
+                    // 正面渲染改用 img 標籤並加上 cat-img 樣式類別
+                    card.innerHTML = `
+            <div class="card-face card-back"></div>
+            <div class="card-face card-front">
+                <img src="${imgUrl}" alt="Cute Cat" class="cat-img">
+            </div>
+        `;
+
+                    card.addEventListener('click', flipCard);
+                    gameBoard.appendChild(card);
+                });
+            }
+
+            // 6. 翻牌核心邏輯
+            function flipCard() {
+                if (isBoardLocked) return;
+                if (this.classList.contains('matched')) return;
+                if (flippedCards.length === 1 && flippedCards[0].dataset.index === this.dataset.index) return;
+
+                this.classList.add('flipped');
+                flippedCards.push(this);
+
+                if (flippedCards.length === 2) {
+                    flipCount++;
+                    flipCountDisplay.textContent = flipCount;
+                    checkMatch();
+                }
+            }
+
+            // 7. 配對檢查與鎖定機制控制
+            function checkMatch() {
+                const [card1, card2] = flippedCards;
+
+                // 比對兩張牌的圖片網址
+                if (card1.dataset.img === card2.dataset.img) {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+
+                    matchCount++;
+                    matchCountDisplay.textContent = `${matchCount} / 8`;
+
+                    flippedCards = [];
+
+                    if (matchCount === 8) {
+                        setTimeout(() => alert(`🎉 太強了！您總共翻動了 ${flipCount} 次成功通關！`), 500);
+                    }
+                } else {
+                    isBoardLocked = true;
+
+                    setTimeout(() => {
+                        card1.classList.remove('flipped');
+                        card2.classList.remove('flipped');
+
+                        flippedCards = [];
+                        isBoardLocked = false;
+                    }, 1000); // 留 1 秒讓玩家記憶圖片
+                }
+            }
+
+            resetBtn.addEventListener('click', initGame);
+            document.addEventListener('DOMContentLoaded', initGame);
+        </script>
+    </body>
+
+    </html>
+</body>
+
+</html>

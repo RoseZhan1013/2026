@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧醫療門診叫號系統</title>
+    <link rel="stylesheet" href="醫院叫號系統.css">  
+</head>
+<body>
+
+<div class="system-wrapper">
+    <header>
+        <div>
+            <h1>智慧叫號系統</h1>
+        </div>
+        <div class="clinic-badge">
+            第一診間 ｜ <strong>陳大明 醫師</strong> (一般內科)
+        </div>
+    </header>
+
+    <!-- 主要功能版面 -->
+    <div class="main-layout">
+        <!-- 左側：當前呼叫焦點區 -->
+        <div>
+            <div class="column-title">看診中</div>
+            <div class="display-card">
+                <div class="number-box" id="num-box">
+                    <div class="num-label">請至診間</div>
+                    <div class="main-num" id="current-id">001</div>
+                    <div class="patient-name-tag">
+                        <span class="status-dot"></span>
+                        <span id="current-name">張〇華</span>
+                    </div>
+                </div>
+                <button class="action-btn" onclick="nextPatientClick()">
+                    <span>呼叫下一位病患</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 右側候診名單 -->
+        <div class="queue-container">
+            <div class="column-title">候診順序</div>
+            <ul class="queue-list" id="queue-list">
+                <!-- 由 JavaScript 渲染 -->
+            </ul>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // 預設 5 位病患資料
+    let current = { id: "001", name: "張〇華" };
+    let queue = [
+        { id: "002", name: "李〇同" },
+        { id: "003", name: "王〇明" },
+        { id: "004", name: "林〇美" },
+        { id: "005", name: "陳〇宇" }
+    ];
+
+    function init() {
+        updateDisplay();
+        renderQueue();
+    }
+
+    // 渲染右側候診列表
+    function renderQueue() {
+        const list = document.getElementById("queue-list");
+        list.innerHTML = "";
+
+        if (queue.length === 0) {
+            list.innerHTML = `<li style="text-align:center; padding:40px; color:var(--text-muted); font-size:14px; letter-spacing:1px;">候診名單已清空</li>`;
+            return;
+        }
+
+        queue.forEach(p => {
+            const li = document.createElement("li");
+            li.className = "queue-item";
+            li.innerHTML = `
+                <div class="p-meta">
+                    <span class="p-id">${p.id}</span>
+                    <span class="p-name">${p.name}</span>
+                </div>
+                <span class="badge-waiting">等候中</span>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    // 更新看診中欄位
+    function updateDisplay() {
+        document.getElementById("current-id").innerText = current.id;
+        document.getElementById("current-name").innerText = current.name;
+    }
+
+    // 按鈕點擊事件
+    function nextPatientClick() {
+        if (queue.length === 0) {
+            alert("目前沒有登記等候的病患。");
+            return;
+        }
+
+        // 取出下一個
+        current = queue.shift();
+        
+        // 更新並觸發叫號特效
+        updateDisplay();
+        renderQueue();
+        playEffects();
+    }
+
+    // 質感視覺與語音特效
+    function playEffects() {
+        const box = document.getElementById("num-box");
+        box.classList.add("calling");
+
+        // 3秒後移除呼吸動畫
+        setTimeout(() => {
+            box.classList.remove("calling");
+        }, 3600);
+
+        // 內建 Web Speech API 高清國語語音播報
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const text = `請 ${current.id} 號 ${current.name} 到第一診間看診。`;
+            const voiceMessage = new SpeechSynthesisUtterance(text);
+            voiceMessage.lang = 'zh-TW';
+            voiceMessage.rate = 0.85; // 稍慢、優雅的語速
+            voiceMessage.pitch = 1.0;
+            window.speechSynthesis.speak(voiceMessage);
+        }
+    }
+
+    window.onload = init;
+</script>
+
+</body>

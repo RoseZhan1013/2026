@@ -1,0 +1,313 @@
+/* --- 莫蘭迪複合色彩與質感變數 --- */
+        :root {
+            /* 主色調：莫蘭迪煙燻紫 */
+            --primary-muted: #6C6479;    
+            --primary-dark: #4A4355;     
+            --primary-light: #938A1A2;   
+            
+            /* 輔助與點綴色：高雅調和 */
+            --accent-sage: #8EA499;       /* 莫蘭迪鼠尾草綠（用於狀態或溫和對比） */
+            --accent-blue: #7A8F9E;       /* 莫蘭迪霧藍（用於次要標籤） */
+            --accent-gold: #C2A694;       /* 莫蘭迪暮光金/燕麥色（用於精緻邊框與點綴） */
+            --accent-active: #533B6B;     /* 強烈呼叫時的深邃紫 */
+
+            /* 中性色：背景與基底 */
+            --bg-global: #F4F4F6;         /* 帶極輕微暖意的高級灰白 */
+            --card-bg: #FFFFFF;
+            --text-main: #2F2B35;         /* 深炭紫黑，比純黑更柔和 */
+            --text-muted: #7E7885;        /* 輔助說明文字 */
+            
+            /* 質感：陰影與圓角 */
+            --shadow-sm: 0 2px 8px rgba(74, 67, 85, 0.04);
+            --shadow-md: 0 12px 30px rgba(74, 67, 85, 0.08);
+            --shadow-lg: 0 20px 50px rgba(74, 67, 85, 0.12);
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background: linear-gradient(135deg, #F4F4F6 0%, #EBEAEE 100%);
+            color: var(--text-main);
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 主容器：懸浮科技感卡片 */
+        .system-wrapper {
+            width: 100%;
+            max-width: 1100px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            overflow: hidden;
+        }
+
+        /* 頂部導航列：深邃莫蘭迪紫 */
+        header {
+            background: linear-gradient(90deg, var(--primary-dark) 0%, var(--primary-muted) 100%);
+            color: #FFFFFF;
+            padding: 25px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-gold) 0%, var(--accent-blue) 100%);
+        }
+
+        header h1 {
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .clinic-badge {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            letter-spacing: 0.5px;
+        }
+
+        /* 主區塊版面 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 35px;
+            padding: 40px;
+        }
+
+        @media (max-width: 850px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                padding: 25px;
+            }
+        }
+
+        .column-title {
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .column-title::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 16px;
+            background-color: var(--accent-blue);
+            border-radius: 2px;
+        }
+
+        /* 左側：當前看診（焦點設計） */
+        .display-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            padding: 40px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(11C, 100, 121, 0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 大號碼區塊 */
+        .number-box {
+            text-align: center;
+            padding: 30px 0;
+            background: linear-gradient(180deg, #F9F9FA 0%, #F1F0F4 100%);
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(194, 166, 148, 0.3); /* 暮光金細邊 */
+            margin-bottom: 30px;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* 叫號動態高質感效果 */
+        .number-box.calling {
+            animation: elegant-pulse 1.2s ease-in-out infinite alternate;
+            background: linear-gradient(180deg, #F0EBF5 0%, #E3DBED 100%);
+            border-color: var(--primary-muted);
+        }
+
+        @keyframes elegant-pulse {
+            0% { box-shadow: 0 0 0px rgba(108, 100, 121, 0.2); transform: scale(1); }
+            100% { box-shadow: 0 15px 35px rgba(108, 100, 121, 0.15); transform: scale(1.02); }
+        }
+
+        .num-label {
+            font-size: 14px;
+            color: var(--accent-blue);
+            font-weight: 600;
+            letter-spacing: 3px;
+            margin-bottom: 5px;
+        }
+
+        .main-num {
+            font-size: 96px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            line-height: 1;
+            letter-spacing: -2px;
+            font-family: 'Courier New', Courier, monospace; /* 模擬高質感跳號感 */
+        }
+
+        .patient-name-tag {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-sage);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--accent-sage);
+        }
+
+        /* 高級感按鈕 */
+        .action-btn {
+            background: var(--primary-muted);
+            color: #FFFFFF;
+            border: none;
+            padding: 16px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(108, 100, 121, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 67, 85, 0.3);
+        }
+
+        .action-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 右側：候診名單清單 */
+        .queue-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .queue-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        /* 客製化高級滑軌 */
+        .queue-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .queue-list::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border-radius: 10px;
+        }
+        .queue-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* 候診卡片樣式 */
+        .queue-item {
+            background: var(--card-bg);
+            border: 1px solid rgba(0,0,0,0.03);
+            border-radius: var(--radius-md);
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .queue-item:hover {
+            transform: translateX(5px) scale(1.01);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(122, 143, 158, 0.3); /* 移入時微顯霧藍邊 */
+        }
+
+        .p-meta {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .p-id {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            font-family: monospace;
+            width: 50px;
+        }
+
+        .p-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* 狀態標籤搭配莫蘭迪色 */
+        .badge-waiting {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 30px;
+            background-color: #ECEFF1;
+            color: var(--accent-blue);
+            letter-spacing: 1px;
+            border: 1px solid rgba(122, 143, 158, 0.15);
+        }
